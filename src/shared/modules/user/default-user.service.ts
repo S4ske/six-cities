@@ -3,8 +3,10 @@ import { DocumentType, types } from '@typegoose/typegoose';
 import { UserService } from './user-service.interface.js';
 import { UserEntity } from './user.entity.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
+import { LoginUserDto } from './dto/login-user.dto.js';
 import { Logger } from '../../libs/logger/index.js';
 import { Component } from '../../types/index.js';
+import type { OfferEntity } from '../offer/offer.entity.js';
 
 @injectable()
 export class DefaultUserService implements UserService {
@@ -39,5 +41,64 @@ export class DefaultUserService implements UserService {
     }
 
     return this.create(dto, salt);
+  }
+
+  public async verifyUser(dto: LoginUserDto, salt: string): Promise<DocumentType<UserEntity> | null> {
+    const user = await this.findByEmail(dto.email);
+
+    if (!user || !user.verifyPassword(dto.password, salt)) {
+      return null;
+    }
+
+    return user;
+  }
+
+  public async addFavoriteOffer(userId: string, offerId: string): Promise<DocumentType<UserEntity> | null> {
+    return this.userModel
+      .findByIdAndUpdate(userId, { $addToSet: { favoriteOffers: offerId } }, { new: true })
+      .exec();
+  }
+
+  public async removeFavoriteOffer(userId: string, offerId: string): Promise<DocumentType<UserEntity> | null> {
+    return this.userModel
+      .findByIdAndUpdate(userId, { $pull: { favoriteOffers: offerId } }, { new: true })
+      .exec();
+  }
+
+  public async removeFavoriteOfferFromAllUsers(offerId: string): Promise<number> {
+    const result = await this.userModel
+      .updateMany({ favoriteOffers: offerId }, { $pull: { favoriteOffers: offerId } })
+      .exec();
+
+    return result.modifiedCount;
+  }
+
+  public async findFavoriteOffers(userId: string): Promise<DocumentType<OfferEntity>[] | null> {
+    const user = await this.userModel
+      .findById(userId)
+      .populate<{ favoriteOffers: DocumentType<OfferEntity>[] }>('favoriteOffers')
+      .exec();
+
+    if (!user) {
+      return null;
+    }
+
+    const favoriteOffers = (user.favoriteOffers ?? [])
+      .filter((offer): offer is DocumentType<OfferEntity> => Boolean(offer));
+
+    favoriteOffers.forEach((offer) => {
+      offer.isFavorite = true;
+    });
+
+    return favoriteOffers.sort((left, right) => right.postDate.getTime() - left.postDate.getTime());
+  }
+
+  public async findFavoriteOfferIds(userId: string): Promise<string[]> {
+    const user = await this.userModel
+      .findById(userId)
+      .select('favoriteOffers')
+      .exec();
+
+    return user ? (user.favoriteOffers ?? []).map((offerId) => offerId.toString()) : [];
   }
 }
