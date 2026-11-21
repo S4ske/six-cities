@@ -5,7 +5,7 @@ import { UpdateOfferDto } from './dto/update-offer.dto.js';
 import { City } from '../../types/index.js';
 
 export interface OfferService {
-  create(dto: CreateOfferDto): Promise<DocumentType<OfferEntity>>;
+  create(dto: CreateOfferDto, authorId: string, postDate?: Date): Promise<DocumentType<OfferEntity>>;
   findById(id: string, userId?: string): Promise<DocumentType<OfferEntity> | null>;
   find(limit?: number, userId?: string): Promise<DocumentType<OfferEntity>[]>;
   updateById(id: string, dto: UpdateOfferDto, userId?: string): Promise<DocumentType<OfferEntity> | null>;
