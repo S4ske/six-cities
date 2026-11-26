@@ -22,8 +22,27 @@ export class DefaultOfferService implements OfferService {
     @inject(Component.UserService) private readonly userService: UserService
   ) {}
 
-  public async create(dto: CreateOfferDto): Promise<DocumentType<OfferEntity>> {
-    const result = await this.offerModel.create(dto);
+  public async create(
+    dto: CreateOfferDto,
+    authorId: string,
+    postDate?: Date
+  ): Promise<DocumentType<OfferEntity>> {
+    const result = await this.offerModel.create({
+      title: dto.title,
+      description: dto.description,
+      city: dto.city,
+      previewImage: dto.preview,
+      images: dto.photos,
+      isPremium: dto.isPremium,
+      type: dto.housingType,
+      bedrooms: dto.rooms,
+      maxAdults: dto.guests,
+      price: dto.price,
+      amenities: dto.amenities,
+      authorId,
+      location: dto.coordinates,
+      ...(postDate ? { postDate } : {}),
+    });
     this.logger.info(`New offer created: ${dto.title}`);
 
     return result.populate('authorId');
@@ -64,7 +83,7 @@ export class DefaultOfferService implements OfferService {
     userId?: string
   ): Promise<DocumentType<OfferEntity> | null> {
     const offer = await this.offerModel
-      .findByIdAndUpdate(id, dto, { new: true })
+      .findByIdAndUpdate(id, this.mapUpdateDto(dto), { new: true })
       .populate('authorId')
       .exec();
 
@@ -113,6 +132,60 @@ export class DefaultOfferService implements OfferService {
     return this.offerModel
       .findByIdAndUpdate(id, { rating }, { new: true })
       .exec();
+  }
+
+  private mapUpdateDto(dto: UpdateOfferDto): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+
+    if (dto.title !== undefined) {
+      result.title = dto.title;
+    }
+
+    if (dto.description !== undefined) {
+      result.description = dto.description;
+    }
+
+    if (dto.city !== undefined) {
+      result.city = dto.city;
+    }
+
+    if (dto.preview !== undefined) {
+      result.previewImage = dto.preview;
+    }
+
+    if (dto.photos !== undefined) {
+      result.images = dto.photos;
+    }
+
+    if (dto.isPremium !== undefined) {
+      result.isPremium = dto.isPremium;
+    }
+
+    if (dto.housingType !== undefined) {
+      result.type = dto.housingType;
+    }
+
+    if (dto.rooms !== undefined) {
+      result.bedrooms = dto.rooms;
+    }
+
+    if (dto.guests !== undefined) {
+      result.maxAdults = dto.guests;
+    }
+
+    if (dto.price !== undefined) {
+      result.price = dto.price;
+    }
+
+    if (dto.amenities !== undefined) {
+      result.amenities = dto.amenities;
+    }
+
+    if (dto.coordinates !== undefined) {
+      result.location = dto.coordinates;
+    }
+
+    return result;
   }
 
   private async setFavoriteStatus(
