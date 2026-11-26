@@ -5,6 +5,7 @@ import { DatabaseClient, MongoDatabaseClient } from '../../shared/libs/database-
 import { Logger, PinoLogger } from '../../shared/libs/logger/index.js';
 import { DefaultUserService, UserModel, UserService } from '../../shared/modules/user/index.js';
 import { DefaultOfferService, OfferModel, OfferService } from '../../shared/modules/offer/index.js';
+import { CommentModel } from '../../shared/modules/comment/index.js';
 import { getMongoURI } from '../../shared/helpers/database.js';
 import { Offer } from '../../shared/types/index.js';
 
@@ -23,7 +24,7 @@ export class ImportCommand implements Command {
     this.logger = new PinoLogger();
     this.databaseClient = new MongoDatabaseClient(this.logger);
     this.userService = new DefaultUserService(this.logger, UserModel);
-    this.offerService = new DefaultOfferService(this.logger, OfferModel);
+    this.offerService = new DefaultOfferService(this.logger, OfferModel, CommentModel, this.userService);
   }
 
   public getName(): string {
@@ -44,8 +45,6 @@ export class ImportCommand implements Command {
       previewImage: offer.previewImage,
       images: offer.images,
       isPremium: offer.isPremium,
-      isFavorite: offer.isFavorite,
-      rating: offer.rating,
       type: offer.type,
       bedrooms: offer.bedrooms,
       maxAdults: offer.maxAdults,
