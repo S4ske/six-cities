@@ -16,8 +16,16 @@ export class DefaultUserService implements UserService {
   ) {}
 
   public async create(dto: CreateUserDto, salt: string): Promise<DocumentType<UserEntity>> {
-    const user = new UserEntity(dto);
-    user.setPassword(dto.password, salt);
+    const user = new UserEntity({
+      name: dto.name,
+      email: dto.email,
+      avatarPath: dto.avatarPath,
+      type: dto.userType,
+    });
+
+    if (dto.password) {
+      user.setPassword(dto.password, salt);
+    }
 
     const result = await this.userModel.create(user);
     this.logger.info(`New user created: ${user.email}`);
@@ -46,7 +54,7 @@ export class DefaultUserService implements UserService {
   public async verifyUser(dto: LoginUserDto, salt: string): Promise<DocumentType<UserEntity> | null> {
     const user = await this.findByEmail(dto.email);
 
-    if (!user || !user.verifyPassword(dto.password, salt)) {
+    if (!user || !dto.password || !user.verifyPassword(dto.password, salt)) {
       return null;
     }
 

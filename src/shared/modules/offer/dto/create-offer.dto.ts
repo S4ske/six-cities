@@ -1,18 +1,40 @@
+import { Expose } from 'class-transformer';
 import { Amenity, City, HousingType, Location } from '../../../types/index.js';
 
 export class CreateOfferDto {
+  @Expose()
   public title!: string;
+
+  @Expose()
   public description!: string;
-  public postDate!: Date;
+
+  @Expose()
   public city!: City;
-  public previewImage!: string;
-  public images!: string[];
+
+  @Expose()
+  public preview!: string;
+
+  @Expose()
+  public photos!: string[];
+
+  @Expose()
   public isPremium!: boolean;
-  public type!: HousingType;
-  public bedrooms!: number;
-  public maxAdults!: number;
+
+  @Expose()
+  public housingType!: HousingType;
+
+  @Expose()
+  public rooms!: number;
+
+  @Expose()
+  public guests!: number;
+
+  @Expose()
   public price!: number;
+
+  @Expose()
   public amenities!: Amenity[];
-  public authorId!: string;
-  public location!: Location;
+
+  @Expose()
+  public coordinates!: Location;
 }

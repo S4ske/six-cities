@@ -33,26 +33,27 @@ export class ImportCommand implements Command {
 
   private async saveOffer(offer: Offer): Promise<void> {
     const user = await this.userService.findOrCreate({
-      ...offer.author,
+      name: offer.author.name,
+      email: offer.author.email,
+      avatarPath: offer.author.avatarPath,
       password: DEFAULT_USER_PASSWORD,
+      userType: offer.author.type,
     }, this.salt);
 
     await this.offerService.create({
       title: offer.title,
       description: offer.description,
-      postDate: offer.postDate,
       city: offer.city,
-      previewImage: offer.previewImage,
-      images: offer.images,
+      preview: offer.previewImage,
+      photos: offer.images,
       isPremium: offer.isPremium,
-      type: offer.type,
-      bedrooms: offer.bedrooms,
-      maxAdults: offer.maxAdults,
+      housingType: offer.type,
+      rooms: offer.bedrooms,
+      guests: offer.maxAdults,
       price: offer.price,
       amenities: offer.amenities,
-      authorId: user.id,
-      location: offer.location,
-    });
+      coordinates: offer.location,
+    }, user.id, offer.postDate);
   }
 
   public async execute(...parameters: string[]): Promise<void> {
